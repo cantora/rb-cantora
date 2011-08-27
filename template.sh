@@ -1,0 +1,1 @@
+cat template.rb | sed "s/RB-CANTORA-TEMPLATE/$1/" >> new_template.rb
