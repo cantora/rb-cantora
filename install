@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/sh                                                                                                           
 
 thisdir=$(dirname $(readlink -f $0))
-echo $thisdir
+#echo $thisdir                                                                                                      
 
 cd ~/bin
-target=cantora
+target=./cantora
 
-if [  -L target ]; then rm $target; fi
+if [  -L $target ]; then rm $target; fi
 
-ln -s $thisdir/cantora $target
+ln -vs $thisdir/cantora $target ]))

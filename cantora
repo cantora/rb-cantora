@@ -31,7 +31,7 @@ class Cmd
 		commands = {}
 		util = nil
 
-		Dir.glob(File.join(THIS_FILE, "./*.rb") ).each do |f|
+		Dir.glob(File.join(File.dirname(THIS_FILE), "./*.rb") ).each do |f|
 			next if ["cantora.rb", "template.rb"].include?(File.basename(f) )
 
 			#puts f.inspect
