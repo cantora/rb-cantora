@@ -3,6 +3,8 @@
 require 'optparse'
 require 'fileutils'
 
+THIS_FILE = File.symlink?(__FILE__) ? File.readlink(__FILE__) : File.expand_path(File.dirname(__FILE__)) 
+
 module Cantora
 
 class Cmd
@@ -16,6 +18,7 @@ class Cmd
 	def error(msg)
 		puts msg
 		puts USAGE
+		exit(1)
 	end
 
 	def run
@@ -28,7 +31,7 @@ class Cmd
 		commands = {}
 		util = nil
 
-		Dir.glob(File.join(File.expand_path(File.dirname(__FILE__)), "./*.rb") ).each do |f|
+		Dir.glob(File.join(THIS_FILE, "./*.rb") ).each do |f|
 			next if ["cantora.rb", "template.rb"].include?(File.basename(f) )
 
 			#puts f.inspect

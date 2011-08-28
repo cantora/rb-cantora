@@ -1,5 +1,4 @@
 
-
 module Cantora
 
 	module Logger
