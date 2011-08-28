@@ -9,8 +9,18 @@ module Cantora
 class CC
 
 	include Cantora::Logger
-	
-	COMMANDS = [File.basename(__FILE__, ".rb")]
+
+	class << self
+		include Cantora::CmdUtility
+	end
+
+	def self.commands
+		return [File.basename(__FILE__, ".rb")]
+	end
+		
+	def self.option_parser 
+		return Opts
+	end
 
 	class Opts < Cantora::Opts
 
@@ -18,7 +28,7 @@ class CC
 			options = super(argv)
 												
 			optparse = OptionParser.new do |opts|
-				opts.banner = "Usage: #{COMMANDS.join(" | ")} [options] C-CODE"
+				opts.banner = "Usage: #{CC::commands.join(" | ")} [options] C-CODE"
 				opts.separator ""
 
 				options[:includes] = []

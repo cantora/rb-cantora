@@ -16,7 +16,6 @@ module Cantora
 		end
 	end
 
-
 	class Opts
 		def self.parse(argv)
 			return {}
@@ -24,5 +23,15 @@ module Cantora
 
 	end
 
+	module CmdUtility
+		
+		def commands
+			return []
+		end
+
+		def option_parser
+			return Cantora::Opts
+		end
+	end
 
 end

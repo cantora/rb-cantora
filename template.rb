@@ -9,7 +9,17 @@ class RB-CANTORA-TEMPLATE
 
 	include Cantora::Logger
 	
-	COMMANDS = [File.basename(__FILE__, ".rb")]
+	class << self
+		include Cantora::CmdUtility
+	end
+
+	def self.commands
+		return [File.basename(__FILE__, ".rb")]
+	end
+		
+	def self.option_parser 
+		return Opts
+	end
 
 	class Opts < Cantora::Opts
 
@@ -63,7 +73,7 @@ end #RB-CANTORA-TEMPLATE
 end #Cantora
 
 if $0 == __FILE__
-	options = Cantora::RB-CANTORA-TEMPLATE::Opts.parse(ARGV)
+	options = Cantora::RB-CANTORA-TEMPLATE.option_parser.parse(ARGV)
 	obj = Cantora::RB-CANTORA-TEMPLATE.new(options)
 	obj.run
 end
