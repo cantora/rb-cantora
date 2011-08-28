@@ -1,5 +1,11 @@
 #!/bin/sh
 
-thisdir=$(dirname $0)
+thisdir=$(dirname $(readlink -f $0))
+echo $thisdir
 
-ln -s $thisdir/cantora ~/bin/cantora 
+cd ~/bin
+target=cantora
+
+if [  -L target ]; then rm $target; fi
+
+ln -s $thisdir/cantora $target
