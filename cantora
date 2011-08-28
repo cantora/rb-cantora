@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+module Cantora
+
+class Cmd
+		
+	def initialize(argv)
+		@argv = argv
+	end
+	
+	USAGE = "USAGE: cantora CMD [options]"
+
+	def error(msg)
+		puts msg
+		puts USAGE
+	end
+
+	def run
+		#puts @argv.inspect
+		
+		command = @argv.shift
+		
+		error "must supply a command" if command.nil? || command.empty?
+
+		commands = {}
+		util = nil
+
+		Dir.glob(File.join(File.expand_path(File.dirname(__FILE__)), "./*.rb") ).each do |f|
+			next if ["cantora.rb", "template.rb"].include?(File.basename(f) )
+
+			#puts f.inspect
+			require(f)
+		
+			#look for the command we are trying to run
+			Cantora.constants.each do |name|
+				klass = Cantora.const_get(name)
+				#puts klass.inspect
+
+				if klass.respond_to?(:commands) && klass.commands.include?(command)
+					#puts klass.commands.inspect	
+					util = klass 
+					break
+				end
+			end
+			
+			break if !util.nil?
+		end
+
+		error "could not find command #{command.inspect}" if util.nil?
+
+		options = util.option_parser.parse(@argv)
+		obj = util.new(options)
+		obj.run
+	end
+	
+end
+
+end
+
+if $0 == __FILE__
+	
+	obj = Cantora::Cmd.new(ARGV)
+	obj.run
+end
+		
+
+
+
