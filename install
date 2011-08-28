@@ -1,0 +1,5 @@
+#!/bin/sh
+
+thisdir=$(dirname $0)
+
+ln -s $thisdir/cantora ~/bin/cantora 
