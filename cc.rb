@@ -40,6 +40,11 @@ class CC
 				opts.on('-i', '--quoted-include INCLUDE', '#include "INCLUDE"' ) do |include|
 					options[:quoted_includes] << include
 				end
+				
+				options[:util_binary] = []
+				opts.on('--util-binary', 'define: void printbits(int n)' ) do |butil|
+					options[:util_binary] = true
+				end
 						
 				opts.separator ""
 				opts.separator "Common options:"
@@ -89,7 +94,7 @@ class CC
 	
 	def run
 	
-		main = self.class::generate_main(@options[:code], include_string)
+		main = generate_main(@options[:code], include_string)
 		log main if @options[:verbose] == true
 
 		write_main(main)
@@ -103,11 +108,16 @@ class CC
 		puts result		
 	end
 
-	def self.generate_main(code, includes)
-		code = [includes, CMAIN_PREFIX, code, CMAIN_SUFFIX].join("\n")
+	def generate_main(code, includes)
+		code = [includes, function_defs, CMAIN_PREFIX, code, CMAIN_SUFFIX].join("\n")
 		
 		return code
 	end	
+
+	def function_defs
+		s = ""
+		s << BINARY_UTIL if @options[:util_binary]
+	end
 		
 	def compile()
 				
@@ -132,6 +142,49 @@ class CC
 	def include_string
 		return ((["stdio.h"] + @options[:includes]).collect {|i| "#include <#{i}>"} + @options[:quoted_includes].collect {|i| "#include \"#{i}\""}).join("\n")
 	end
+
+	BINARY_UTIL = <<QWERQWER
+void printbits(int n, int groupsize) {
+	unsigned int i, step;
+
+	if (0 == n) { /* For simplicity's sake, I treat 0 as a special case*/
+		printf("0000");
+		return;
+	}
+
+	i = 1<<(sizeof(n) * 8 - 1);
+
+	step = -1; /* Only print the relevant digits */
+	step >>= groupsize; 
+	while (step >= n) {
+		i >>= groupsize;
+		step >>= groupsize;
+	}
+
+	/* At this point, i is the smallest power of two larger or equal to n */
+	while (i > 0) {
+		if (n & i)
+			printf("1");
+		else
+			printf("0");
+		i >>= 1;
+	}
+}
+
+void print32bits(int n) {
+	unsigned int i, step;
+
+	i = 1<<(sizeof(n) * 8 - 1);
+
+	while (i > 0) {
+		if (n & i)
+			printf("1");
+		else
+			printf("0");
+		i >>= 1;
+	}
+}
+QWERQWER
 
 end #CC
 
