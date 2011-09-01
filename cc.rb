@@ -41,6 +41,12 @@ class CC
 					options[:quoted_includes] << include
 				end
 				
+				options[:cc_opts] = ""
+				opts.on('-o', '--cc-opts OPTS', 'options to pass to compiler' ) do |cc_opts|
+					options[:cc_opts] = cc_opts
+				end
+				
+				
 				options[:util_binary] = []
 				opts.on('--util-binary', 'define: void printbits(int n)' ) do |butil|
 					options[:util_binary] = true
@@ -117,12 +123,25 @@ class CC
 	def function_defs
 		s = ""
 		s << BINARY_UTIL if @options[:util_binary]
+
+		return s
+	end
+	
+	def gcc_command
+		cmd = "gcc "
+
+		cmd << (@options[:cc_opts] || "")
+		cmd << " -o #{MAIN} #{MAIN+'.c'}"
+
+		return cmd
 	end
 		
 	def compile()
-				
-		gcc_result = `gcc -o #{MAIN} #{MAIN+".c"}`
-		raise "gcc did not produce output: #{gcc_result}" if !File.file?(MAIN)
+		cmd = gcc_command	
+		
+		#puts gcc_command.inspect
+		gcc_result = `#{cmd}`
+		raise "gcc did not produce output:\n#{gcc_command}\n#{gcc_result}" if !File.file?(MAIN)
 
 		return gcc_result 
 	end
