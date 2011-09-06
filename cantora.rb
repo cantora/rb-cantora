@@ -1,3 +1,4 @@
+require 'optparse'
 
 module Cantora
 
@@ -16,6 +17,13 @@ module Cantora
 	end
 
 	class Opts
+
+		class ShowHelp < OptionParser::ParseError
+			def message
+				return ""
+			end
+		end
+		
 		def self.parse(argv)
 			return {}
 		end

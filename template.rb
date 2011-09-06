@@ -25,11 +25,15 @@ class RB-CANTORA-TEMPLATE
 
 		def self.parse(argv)
 			options = super(argv)
-												
+			
+			caller = File.basename($0)
 			optparse = OptionParser.new do |opts|
-				opts.banner = "Usage: #{COMMANDS.join(" | ")} [options] "
+				
+				opts.banner = "Usage: #{caller == "cantora")? "#{$0} CMD" : $0 } [options] "
 				opts.separator ""
 				
+				opts.separator "commands: #{RB-CANTORA-TEMPLATE::commands.join(", ")}" if caller == "cantora"
+
 				opts.separator ""
 				opts.separator "Common options:"
 				options[:verbose] = false
@@ -39,14 +43,14 @@ class RB-CANTORA-TEMPLATE
 				end
 
 				opts.on('-h', '--help', 'display this message' ) do
-					raise ""
+					raise ShowHelp.new, ""
 				end
 			end
 			
 			begin
 				optparse.parse!(argv)
 				
-			rescue Exception => e
+			rescue OptionParser::ParseError => e
 				puts e.message
 				puts optparse
 				

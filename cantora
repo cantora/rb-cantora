@@ -24,7 +24,7 @@ class Cmd
 	def run
 		#puts @argv.inspect
 		
-		command = @argv.shift
+		command = @argv[0]
 		
 		error "must supply a command" if command.nil? || command.empty?
 
@@ -54,6 +54,7 @@ class Cmd
 
 		error "could not find command #{command.inspect}" if util.nil?
 
+		#puts @argv.inspect
 		options = util.option_parser.parse(@argv)
 		obj = util.new(options)
 		obj.run
