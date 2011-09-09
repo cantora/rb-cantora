@@ -67,7 +67,8 @@ class CC
 			
 			begin
 				optparse.parse!(argv)
-
+				
+				argv.shift
 				options[:code] = argv.shift
 			
 				raise "invalid code: #{options[:code].inspect}" if options[:code].nil? || options[:code].strip.empty?
@@ -203,6 +204,32 @@ void print32bits(int n) {
 		i >>= 1;
 	}
 }
+
+void pb(int n, int msb_i, int lsb_i) {
+	unsigned int i;
+	unsigned int lsb_bound;
+	lsb_bound = (1<<lsb_i) - 1; 
+	i = 1<<msb_i;
+	//printf("i: %u, lsb_bound: %u\\n", i, lsb_bound);
+	while (i > lsb_bound) {
+		if (n & i)
+			printf("1");
+		else
+			printf("0");
+		i >>= 1;
+	}
+}
+
+void pbf(float f) {
+	int *n = (int *) &f;
+	pb(*n, 31, 31);
+	printf(" ");
+	pb(*n, 30, 23);
+	printf(" ");
+	pb(*n, 22, 0);
+
+}
+
 QWERQWER
 
 end #CC
