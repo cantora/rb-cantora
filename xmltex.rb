@@ -2,7 +2,7 @@
 
 require 'optparse'
 require File.join(File.expand_path(File.dirname(__FILE__)), "cantora")
-require 'rubygems'
+
 require 'rexml/document'
 require 'digest/md5'
 

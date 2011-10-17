@@ -3,7 +3,12 @@
 require 'optparse'
 require 'fileutils'
 
-THIS_FILE = File.symlink?(__FILE__) ? File.readlink(__FILE__) : File.expand_path(__FILE__) 
+this_file = __FILE__
+while File.symlink?(this_file) 
+	this_file = File.readlink(this_file)
+end
+
+THIS_FILE = File.expand_path(this_file) 
 
 module Cantora
 

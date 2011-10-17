@@ -35,7 +35,7 @@ class CC
 				opts.on('-I', '--include INCLUDE', '#include <INCLUDE>' ) do |include|
 					options[:includes] << include
 				end
-		
+
 				options[:quoted_includes] = []
 				opts.on('-i', '--quoted-include INCLUDE', '#include "INCLUDE"' ) do |include|
 					options[:quoted_includes] << include
