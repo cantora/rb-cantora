@@ -76,8 +76,8 @@ class Req
 		
 	end
 
-	def self.get(url, query, headers, options)
-		query_str = query_string(query)
+	def self.get(url, query, headers, options, escape_query=true)
+		query_str = query_string(query, {:escape => escape_query})
 		url += "?" + query_str if !query_str.empty?
 
 		raise "invalid headers: #{headers.inspect}" if !headers.is_a?(Hash)
@@ -105,10 +105,15 @@ class Req
 		end
 	end
 
-	def self.query_string(query)
+	def self.query_string(query, options={:escape => true})
 		raise "invalid query: #{query.inspect}" if !query.is_a?(Hash)
 
-		return query.collect {|k,v| "#{CGI::escape(k)}=#{CGI::escape(v)}"}.join("&")
+		return query.collect do |k,v| 
+			key = options[:escape]? CGI::escape(k) : k
+			val = options[:escape]? CGI::escape(v) : v
+
+			"#{key}=#{val}"
+		end.join("&")
 	end
 
 	
