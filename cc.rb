@@ -35,7 +35,7 @@ class CC
 				opts.on('-I', '--include INCLUDE', '#include <INCLUDE>' ) do |include|
 					options[:includes] << include
 				end
-
+		
 				options[:quoted_includes] = []
 				opts.on('-i', '--quoted-include INCLUDE', '#include "INCLUDE"' ) do |include|
 					options[:quoted_includes] << include
@@ -220,6 +220,20 @@ void pb(int n, int msb_i, int lsb_i) {
 	}
 }
 
+void pb64(long long n, int msb_i, int lsb_i) {
+     	int i = 0;
+	int amt = msb_i - lsb_i;
+        long long mask = (0x01LL << msb_i);
+        
+	for(i = 0; i < amt+1; i++) {
+		if (mask & n)
+			printf("1");
+		else
+			printf("0");
+		n <<= 1;
+	}
+}
+
 void pbf(float f) {
 	int *n = (int *) &f;
 	pb(*n, 31, 31);
@@ -227,6 +241,16 @@ void pbf(float f) {
 	pb(*n, 30, 23);
 	printf(" ");
 	pb(*n, 22, 0);
+
+}
+
+void pbd(double d) {
+	long long *n = (long long *) &d;
+	pb64(*n, 63, 63);
+	printf(" ");
+	pb64(*n, 62, 62-10);
+	printf(" ");
+	pb64(*n, 62-11, 0);
 
 }
 

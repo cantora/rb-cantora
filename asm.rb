@@ -3,6 +3,8 @@
 require 'optparse'
 require File.join(File.expand_path(File.dirname(__FILE__)), "cantora")
 
+#look into .pos 0x1234 directive for asm
+
 module Cantora
 
 class Asm
@@ -91,8 +93,8 @@ class Asm
 		File.open(objname, "r") do |f|
 			f.seek(152, IO::SEEK_CUR)
 			f.each_byte do |b|
-				print sprintf("\\x%02x", b)			
-			end			
+				print sprintf("\\x%02x", b)
+			end
 		end
 
 		puts

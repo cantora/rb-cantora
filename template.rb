@@ -29,7 +29,7 @@ class RB-CANTORA-TEMPLATE
 			caller = File.basename($0)
 			optparse = OptionParser.new do |opts|
 				
-				opts.banner = "Usage: #{caller == "cantora")? "#{$0} CMD" : $0 } [options] "
+				opts.banner = "Usage: #{(caller == "cantora")? "#{$0} CMD" : $0 } [options] "
 				opts.separator ""
 				
 				opts.separator "commands: #{RB-CANTORA-TEMPLATE::commands.join(", ")}" if caller == "cantora"
