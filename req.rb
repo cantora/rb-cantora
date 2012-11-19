@@ -7,6 +7,53 @@ require 'cgi'
 require 'rest-open-uri'
 require 'socket'
 
+class OptionParser
+
+	def on_invalid_option(&bloc)
+		@on_invalid_option = bloc
+	end
+
+	class InvalidOption
+		attr_accessor :option
+	end
+
+	def old_complete(typ, opt, icase = false, *pat)
+		if pat.empty?
+			search(typ, opt) {|sw| return [sw, opt]} # exact match or...
+		end
+		raise AmbiguousOption, catch(:ambiguous) {
+			visit(:complete, typ, opt, icase, *pat) {|o, *sw| return sw}
+			e = InvalidOption.new(opt)
+			e.option = opt
+			raise e
+		}
+	end
+	private :old_complete
+
+	def complete(*args)
+		retried = false
+		#puts "complete: #{args.inspect}"
+		result = begin
+			old_complete(*args)
+		rescue InvalidOption => e
+			if !@on_invalid_option.nil?
+				result = @on_invalid_option.call(e.option)
+				if result && retried == false
+					retried = true
+					retry
+				end
+			end
+
+			raise e
+		end
+
+		#puts "result: #{result.inspect}"
+
+		return result
+	end
+	
+end
+
 module Cantora
 
 class Req
@@ -40,8 +87,41 @@ class Req
 
 				opts.separator ""
 				opts.separator "Common options:"
-				options[:verbose] = false
 
+				opts.on_invalid_option do |name|
+					case_result = true
+					case name
+					when /^h-/
+						opts.on("--#{name} VAL", "HTTP header key/value pair") do |val|
+							options[:headers] ||= {}
+							options[:headers][name[2..-1]] = val
+						end
+					when /^q-/
+						opts.on("--#{name} VAL", "query key/value pair") do |val|
+							options[:query] ||= {}
+							options[:query][name[2..-1]] = val
+						end
+					else
+						case_result = false
+					end
+	
+					case_result
+				end
+
+				opts.on("-u", "--url URL", "url to make the request to") do |url|
+					options[:url] = url
+				end
+
+				opts.on("--bloc BLOC", "a bloc which will be passed the options hash") do |code|
+					options[:bloc] = eval(code)
+					raise "invalid bloc does not respond to call" if !options[:bloc].respond_to?(:call)
+				end
+
+				opts.on("-q", "--query STR", "query string") do |val|
+					options[:query_str] = val
+				end
+
+				options[:verbose] = false
 				opts.on('-v', '--verbose', 'verbose output' ) do
 					options[:verbose] = true
 				end
@@ -53,7 +133,8 @@ class Req
 			
 			begin
 				optparse.parse!(argv)
-				
+
+				options[:cmd] = argv.shift
 			rescue OptionParser::ParseError => e
 				puts e.message
 				puts optparse
@@ -73,11 +154,40 @@ class Req
 	end
 		
 	def run
+		if @options[:verbose]
+			Net::BufferedIO.class_exec do
+				alias_method :old_write0, :write0
+				def write0(str)
+					print str
+					return old_write0(str)
+				end
+			end
+		end
 		
+		if !@options[:cmd].nil? && !@options[:cmd].empty? && self.respond_to?(@options[:cmd].to_sym)
+			self.send(@options[:cmd].to_sym)
+		else
+			raise "invalid command #{@options[:cmd].inspect}"
+		end
 	end
 
-	def self.get(url, query, headers, options, escape_query=true)
-		query_str = query_string(query, {:escape => escape_query})
+	def post
+		uri = URI.parse(@options[:url]) rescue nil
+		raise "invalid url: #{@options[:url].inspect}" if uri.nil?
+		
+		q = if !@options[:query_str].nil?
+			@options[:query_str]
+		else
+			@options[:query] || {}
+		end
+		output = do_post(uri, q, @options[:headers] || {}, \
+					{}, true, &@options[:bloc])
+		puts "\n\n"
+		puts output
+	end
+
+	def do_get(url, query, headers, options, escape_query=true)
+		query_str = self.class::query_string(query, {:escape => escape_query})
 		url += "?" + query_str if !query_str.empty?
 
 		raise "invalid headers: #{headers.inspect}" if !headers.is_a?(Hash)
@@ -86,19 +196,25 @@ class Req
 		return send_request(url, headers.merge(options))
 	end
 
-	def self.post(url, query, headers, options)
-		query_str = query_string(query)
-		
+	def do_post(url, query, headers, options, escape_query=true, &bloc)
 		raise "invalid headers: #{headers.inspect}" if !headers.is_a?(Hash)
 		raise "invalid options: #{options.inspect}" if !options.is_a?(Hash)
 		
-		options.merge!({:body => query_string(query), :method => :post})
-		return send_request(url, headers.merge(options))
+		body = if query.is_a?(Hash)
+			 self.class::query_string(query, {:escape => escape_query})
+		else
+			query
+		end
+
+		options.merge!({:body => body, :method => :post})
+		options = headers.merge(options)
+		bloc.call(options) if !bloc.nil?
+		return send_request(url, options)
 	end
 
-	def self.send_request(url, options)
-		puts "url: #{url.inspect}"
-		puts "options: #{options.inspect}"
+	def send_request(url, options)
+		puts "url: #{url.inspect}" if @options[:verbose]
+		puts "options: #{options.inspect}" if @options[:verbose]
 
 		return open(url, options) do |f|
 			f.readlines.join

@@ -15,7 +15,7 @@ class CC
 	end
 
 	def self.commands
-		return [File.basename(__FILE__, ".rb")]
+		return ["cc", "asm"]
 	end
 		
 	def self.option_parser 
@@ -52,11 +52,16 @@ class CC
 					options[:stdout] = x
 				end
 				
-				options[:util_binary] = []
+				options[:util_binary] = false
 				opts.on('--util-binary', 'define: void printbits(int n)' ) do |butil|
 					options[:util_binary] = true
 				end
 						
+				options[:auto_main] = true
+				opts.on('--[no-]auto-main', "automatically define main and insert code into main body. default: #{options[:auto_main].inspect}") do |auto_main|
+					options[:auto_main] = auto_main
+				end
+				
 				opts.separator ""
 				opts.separator "Common options:"
 				options[:verbose] = false
@@ -72,8 +77,8 @@ class CC
 			
 			begin
 				optparse.parse!(argv)
-				
-				argv.shift
+
+				options[:cmd] = argv.shift
 				options[:code] = argv.shift
 			
 				raise "invalid code: #{options[:code].inspect}" if options[:code].nil? || options[:code].strip.empty?
@@ -111,22 +116,42 @@ class CC
 
 		write_main(main)
 
+		if @options[:cmd] == "asm"		
+			@options[:cc_opts] ||= ""
+			@options[:cc_opts] += "-O0 -S "
+		end
+
 		gcc_output = compile
 
 		log gcc_output if @options[:verbose] == true
 
-		if @options[:stdout]
-			File.open(MAIN, 'r') do |f|
-				$stdout.write(f.read())
+		case @options[:cmd]
+		when "cc"
+			if @options[:stdout]
+				File.open(MAIN, 'r') do |f|
+					$stdout.write(f.read())
+				end
+			else
+				result = `#{MAIN}`
+				puts result		
 			end
+		when "asm"
+			result = File.read(MAIN)
 		else
-			result = `#{MAIN}`
-			puts result		
+			raise "invalid command: #{@options[:cmd].inspect}"
 		end
+
+		puts result		
 	end
 
 	def generate_main(code, includes)
-		code = [includes, function_defs, CMAIN_PREFIX, code, CMAIN_SUFFIX].join("\n")
+		cmain_prefix, cmain_suffix = if @options[:auto_main]
+			[CMAIN_PREFIX, CMAIN_SUFFIX]
+		else
+			["", ""]
+		end
+
+		code = [includes, function_defs, cmain_prefix, code, cmain_suffix].join("\n")
 		
 		return code
 	end	
