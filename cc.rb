@@ -15,7 +15,7 @@ class CC
 	end
 
 	def self.commands
-		return ["cc", "asm"]
+		return ["cc", "cc-asm"]
 	end
 		
 	def self.option_parser 
@@ -116,7 +116,7 @@ class CC
 
 		write_main(main)
 
-		if @options[:cmd] == "asm"		
+		if @options[:cmd] == "cc-asm"		
 			@options[:cc_opts] ||= ""
 			@options[:cc_opts] += "-O0 -S "
 		end
@@ -135,7 +135,7 @@ class CC
 				result = `#{MAIN}`
 				puts result		
 			end
-		when "asm"
+		when "cc-asm"
 			result = File.read(MAIN)
 		else
 			raise "invalid command: #{@options[:cmd].inspect}"
