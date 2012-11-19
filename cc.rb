@@ -46,6 +46,11 @@ class CC
 					options[:cc_opts] = cc_opts
 				end
 				
+				options[:stdout] = ""
+				desc = 'cat result to stdout instead of running (useful for disassembly or outputing intermediate gcc results'
+				opts.on('--stdout', desc) do |x|
+					options[:stdout] = x
+				end
 				
 				options[:util_binary] = []
 				opts.on('--util-binary', 'define: void printbits(int n)' ) do |butil|
@@ -110,9 +115,14 @@ class CC
 
 		log gcc_output if @options[:verbose] == true
 
-		result = `#{MAIN}`
-
-		puts result		
+		if @options[:stdout]
+			File.open(MAIN, 'r') do |f|
+				$stdout.write(f.read())
+			end
+		else
+			result = `#{MAIN}`
+			puts result		
+		end
 	end
 
 	def generate_main(code, includes)
@@ -140,10 +150,11 @@ class CC
 	def compile()
 		cmd = gcc_command	
 		
-		#puts gcc_command.inspect
+		log gcc_command.inspect if @options[:verbose]
 		gcc_result = `#{cmd}`
 		raise "gcc did not produce output:\n#{gcc_command}\n#{gcc_result}" if !File.file?(MAIN)
 
+		log "wrote to #{MAIN}.c" if @options[:verbose]
 		return gcc_result 
 	end
 
