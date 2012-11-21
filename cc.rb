@@ -127,13 +127,12 @@ class CC
 
 		case @options[:cmd]
 		when "cc"
-			if @options[:stdout]
+			if @options[:stdout] == true
 				File.open(MAIN, 'r') do |f|
 					$stdout.write(f.read())
 				end
 			else
 				result = `#{MAIN}`
-				puts result		
 			end
 		when "cc-asm"
 			result = File.read(MAIN)
